@@ -110,6 +110,13 @@ async function bootstrap() {
     await sentryService.flush();
     await app.close();
   });
+
+  await app.listen(port, host, () => {
+    logger.info(`🚀 StellarSwipe Backend running on http://${host}:${port}`);
+    logger.info(
+      `📚 API available at http://${host}:${port}/${globalPrefix}`,
+    );
+  });
 }
 
 bootstrap().catch((err) => {

@@ -3,22 +3,41 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { stellarConfig } from './config/stellar.config';
 import { databaseConfig, redisConfig } from './config/database.config';
-import { appConfig } from './config/app.config';
+import { appConfig, sentryConfig } from './config/app.config';
+import { jwtConfig } from './config/jwt.config';
 import { StellarConfigService } from './config/stellar.service';
 import { LoggerModule } from './common/logger';
 import { SentryModule } from './common/sentry';
 import { BetaModule } from './beta/beta.module';
 import { TradesModule } from './trades/trades.module';
+import { configSchema } from './config/schemas/config.schema';
+import configuration from './config/configuration';
 import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
-    // Configuration Module - loads environment variables
+    // Configuration Module - loads environment variables with validation
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, stellarConfig, databaseConfig, redisConfig],
-      envFilePath: '.env',
+      load: [
+        appConfig,
+        sentryConfig,
+        stellarConfig,
+        databaseConfig,
+        redisConfig,
+        jwtConfig,
+        configuration,
+      ],
+      envFilePath: [
+        `.env.${process.env.NODE_ENV || 'development'}`,
+        '.env',
+      ],
       cache: true,
+      validationSchema: configSchema,
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: false,
+      },
     }),
     // Logger Module - Winston-based structured logging
     LoggerModule,

@@ -18,7 +18,7 @@ export class SentryService {
    * Should be called early in application bootstrap
    */
   init(): void {
-    const dsn = this.configService.get<string>('app.sentry.dsn');
+    const dsn = this.configService.get<string>('sentry.dsn');
 
     if (!dsn) {
       console.warn(
@@ -29,11 +29,11 @@ export class SentryService {
     }
 
     const environment = this.configService.get<string>(
-      'app.sentry.environment',
+      'sentry.environment',
       'development',
     );
     const tracesSampleRate = this.configService.get<number>(
-      'app.sentry.tracesSampleRate',
+      'sentry.tracesSampleRate',
       0.1,
     );
 
