@@ -10,8 +10,7 @@ import { LoggerModule } from './common/logger';
 import { SentryModule } from './common/sentry';
 import { BetaModule } from './beta/beta.module';
 import { TradesModule } from './trades/trades.module';
-import { SignalsModule } from './signals/signals.module';
-import { UsersModule } from './users/users.module';
+import { RiskManagerModule } from './risk/risk-manager.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { configSchema } from './config/schemas/config.schema';
 import configuration from './config/configuration';
@@ -70,6 +69,7 @@ import { HealthController } from './health/health.controller';
     SignalsModule,
     BetaModule,
     TradesModule,
+    RiskManagerModule,
     PortfolioModule,
   ],
   controllers: [HealthController],

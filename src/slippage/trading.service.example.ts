@@ -4,7 +4,7 @@ import { SlippageCalculatorService } from './slippage-calculator.service';
 import {
   SlippageConfigDto,
   SlippageToleranceLevel,
-} from './slippage-config.dto';
+} from './dto/slippage-config.dto';
 
 /**
  * Example integration showing how to use the slippage module
@@ -131,7 +131,7 @@ export class TradingService {
         actualSlippage: slippageReport.slippagePercent,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error executing trade for ${params.symbol}`,
         (error as Error).stack,
@@ -214,7 +214,7 @@ export class TradingService {
           : 'N/A',
         totalCost: `$${statistics.totalSlippageCost.toFixed(2)}`,
       },
-      recentTrades: recentReports.map(r => ({
+      recentTrades: recentReports.map((r: any) => ({
         timestamp: r.timestamp,
         side: r.side,
         expectedPrice: r.expectedPrice,

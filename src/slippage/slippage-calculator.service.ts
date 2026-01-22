@@ -99,7 +99,7 @@ export class SlippageCalculatorService {
         recommendation,
         reasoning,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error estimating slippage for ${estimationDto.symbol}`,
         (error as Error).stack,
