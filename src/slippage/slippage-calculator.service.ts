@@ -102,7 +102,11 @@ export class SlippageCalculatorService {
     } catch (error: any) {
       this.logger.error(
         `Error estimating slippage for ${estimationDto.symbol}`,
+ feat/ai-signal-validation-integration
+        error instanceof Error ? error.stack : String(error),
+
         (error as Error).stack,
+ main
       );
       throw error;
     }
