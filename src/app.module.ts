@@ -25,6 +25,7 @@ import { HealthModule } from './health/health.module';
 import { CacheModule } from './cache/cache.module';
 import { redisCacheConfig } from './config/redis.config';
 import { SorobanModule } from './soroban/soroban.module';
+import { SdexModule } from './sdex/sdex.module';
 
 @Module({
   imports: [
@@ -53,20 +54,7 @@ import { SorobanModule } from './soroban/soroban.module';
         abortEarly: false,
       },
     }),
-    // Cache Module - Redis-based caching
-    CacheModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        isGlobal: true,
-        host: configService.get<string>('redis.host') ?? 'localhost',
-        port: configService.get<number>('redis.port') ?? 6379,
-        password: configService.get<string>('redis.password'),
-        db: configService.get<number>('redis.db') ?? 0,
-        ttl: 60 * 1000, // 60 seconds default TTL
-      }),
-    }),
-    // Bull Module for async processing
+    // Feature Modules
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -112,10 +100,9 @@ import { SorobanModule } from './soroban/soroban.module';
     PortfolioModule,
     AiValidationModule,
     HealthModule,
-    HealthModule,
-    // Cache Module - Redis-based caching for sessions and data
-    CacheModule,
+    SdexModule,
     SorobanModule,
+    CacheModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],

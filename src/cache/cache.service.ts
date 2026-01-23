@@ -10,6 +10,7 @@ export enum CachePrefix {
     SESSION = 'stellarswipe:session:',
     SIGNAL = 'stellarswipe:signal:',
     PORTFOLIO = 'stellarswipe:portfolio:',
+    SDEX = 'stellarswipe:sdex:',
 }
 
 /**
