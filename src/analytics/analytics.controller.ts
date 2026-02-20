@@ -17,6 +17,9 @@ import { RiskMetricsService } from './services/risk-metrics.service';
 import { RiskMetricsQueryDto } from './dto/risk-metrics.dto';
 import { AttributionService } from './services/attribution.service';
 import { AttributionQueryDto } from './dto/attribution-query.dto';
+import { CorrelationService } from './services/correlation.service';
+import { CorrelationQueryDto } from './dto/correlation-query.dto';
+import { CorrelationMatrixDto } from './dto/correlation-matrix.dto';
 
 class TrackEventDto {
   @IsEnum(UserEventType)
@@ -48,6 +51,7 @@ export class AnalyticsController {
     private readonly analyticsService: AnalyticsService,
     private readonly riskMetricsService: RiskMetricsService,
     private readonly attributionService: AttributionService,
+    private readonly correlationService: CorrelationService,
   ) {}
 
   @Post('events')
@@ -151,5 +155,10 @@ export class AnalyticsController {
       endDate,
       query.timeframe,
     );
+  }
+
+  @Get('correlations')
+  async getCorrelations(@Query() query: CorrelationQueryDto): Promise<CorrelationMatrixDto> {
+    return this.correlationService.getCorrelations(query);
   }
 }

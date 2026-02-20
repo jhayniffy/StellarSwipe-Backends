@@ -11,10 +11,20 @@ import { AttributionService } from './services/attribution.service';
 import { Trade } from '../trades/entities/trade.entity';
 import { Signal } from '../signals/entities/signal.entity';
 import { PriceService } from '../shared/price.service';
+import { CorrelationService } from './services/correlation.service';
+import { PriceHistory } from '../prices/entities/price-history.entity';
+import { AssetPair } from '../assets/entities/asset-pair.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEvent, MetricSnapshot, Trade, Signal]),
+    TypeOrmModule.forFeature([
+      UserEvent,
+      MetricSnapshot,
+      Trade,
+      Signal,
+      PriceHistory,
+      AssetPair,
+    ]),
     ScheduleModule.forRoot(),
   ],
   controllers: [AnalyticsController],
@@ -23,8 +33,15 @@ import { PriceService } from '../shared/price.service';
     RiskMetricsService,
     StatisticalAnalysisService,
     AttributionService,
+    CorrelationService,
     PriceService,
   ],
-  exports: [AnalyticsService, RiskMetricsService, AttributionService, StatisticalAnalysisService],
+  exports: [
+    AnalyticsService,
+    RiskMetricsService,
+    AttributionService,
+    CorrelationService,
+    StatisticalAnalysisService
+  ],
 })
 export class AnalyticsModule {}
