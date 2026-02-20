@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { Trade, TradeStatus, TradeSide } from '../trades/entities/trade.entity';
+import { Trade, TradeStatus } from '../trades/entities/trade.entity';
 import { PriceService } from '../shared/price.service';
 import { PositionDetailDto } from './dto/position-detail.dto';
-import { PortfolioSummaryDto } from './dto/portfolio-summary.dto';
-import { CACHE_MANAGER } from '@nestjs/cache-manager'; // New import for cache
+import { PortfolioSummaryDto, TradeDetail } from './dto/portfolio-summary.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject } from '@nestjs/common';
 import { Cache } from 'cache-manager';
+import { PnlCalculatorService } from './services/pnl-calculator.service';
 
 @Injectable()
 export class PortfolioService {
@@ -16,6 +17,7 @@ export class PortfolioService {
     private tradeRepository: Repository<Trade>,
     private priceService: PriceService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private pnlCalculator: PnlCalculatorService,
   ) {}
 
   async getPositions(userId: string): Promise<PositionDetailDto[]> {
@@ -24,6 +26,7 @@ export class PortfolioService {
         userId,
         status: In([TradeStatus.PENDING, TradeStatus.EXECUTING]),
       },
+      order: { createdAt: 'DESC' },
     });
 
     if (openTrades.length === 0) {
@@ -36,7 +39,7 @@ export class PortfolioService {
     return openTrades.map((trade) => {
       const pair = `${trade.baseAsset}/${trade.counterAsset}`;
       const currentPrice = prices[pair] || Number(trade.entryPrice);
-      const unrealizedPnL = this.calculateUnrealizedPnL(trade, currentPrice);
+      const unrealizedPnL = this.pnlCalculator.calculateUnrealizedPnL(trade, currentPrice);
 
       return {
         id: trade.id,
@@ -46,7 +49,7 @@ export class PortfolioService {
         currentPrice: currentPrice,
         unrealizedPnL: unrealizedPnL,
         side: trade.side,
-        openedAt: new Date(), // Use current date or add to entity
+        openedAt: trade.executedAt || trade.createdAt,
       };
     });
   }
@@ -57,7 +60,7 @@ export class PortfolioService {
         userId,
         status: TradeStatus.COMPLETED,
       },
-      order: { updatedAt: 'DESC' },
+      order: { closedAt: 'DESC', updatedAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -69,11 +72,12 @@ export class PortfolioService {
     const cacheKey = `portfolio_performance_${userId}`;
     const cachedData = await this.cacheManager.get<PortfolioSummaryDto>(cacheKey);
     if (cachedData) {
-        return cachedData;
+      return cachedData;
     }
 
     const allTrades = await this.tradeRepository.find({
       where: { userId },
+      order: { createdAt: 'DESC' },
     });
 
     let realizedPnL = 0;
@@ -81,57 +85,62 @@ export class PortfolioService {
     let openPositions = 0;
     let winningTrades = 0;
     let closedTradesCount = 0;
-    let bestTrade = null;
-    let worstTrade = null;
+    let bestTrade: TradeDetail | undefined;
+    let worstTrade: TradeDetail | undefined;
 
-    // Get current prices for open positions
-    const openTradeSymbols = allTrades
-      .filter((t) => t.status === TradeStatus.EXECUTING || t.status === TradeStatus.PENDING)
-      .map((t) => `${t.baseAsset}/${t.counterAsset}`);
+    const openTrades = allTrades.filter((t) => 
+      t.status === TradeStatus.EXECUTING || t.status === TradeStatus.PENDING
+    );
     
-    // De-duplicate symbols
+    const openTradeSymbols = openTrades.map((t) => `${t.baseAsset}/${t.counterAsset}`);
     const uniqueSymbols = [...new Set(openTradeSymbols)];
-    const prices = await this.priceService.getMultiplePrices(uniqueSymbols);
+    const prices = uniqueSymbols.length > 0 ? await this.priceService.getMultiplePrices(uniqueSymbols) : {};
+
+    let totalValue = 0;
 
     for (const trade of allTrades) {
       if (trade.status === TradeStatus.COMPLETED) {
-        realizedPnL += Number(trade.profitLoss || 0);
+        const pnl = Number(trade.profitLoss || 0);
         closedTradesCount++;
-        if (Number(trade.profitLoss) > 0) winningTrades++;
+        if (pnl > 0) winningTrades++;
         
-        if (!bestTrade || Number(trade.profitLoss) > Number(bestTrade.profitLoss)) {
-            bestTrade = trade;
-        }
-        if (!worstTrade || Number(trade.profitLoss) < Number(worstTrade.profitLoss)) {
-            worstTrade = trade;
-        }
+        const tradeDetail: TradeDetail = {
+          id: trade.id,
+          side: trade.side,
+          baseAsset: trade.baseAsset,
+          counterAsset: trade.counterAsset,
+          amount: Number(trade.amount),
+          entryPrice: Number(trade.entryPrice),
+          exitPrice: trade.exitPrice ? Number(trade.exitPrice) : undefined,
+          profitLoss: pnl,
+          profitLossPercentage: trade.profitLossPercentage ? Number(trade.profitLossPercentage) : undefined,
+          executedAt: trade.executedAt,
+          closedAt: trade.closedAt,
+        };
 
+        if (!bestTrade || pnl > bestTrade.profitLoss) {
+          bestTrade = tradeDetail;
+        }
+        if (!worstTrade || pnl < worstTrade.profitLoss) {
+          worstTrade = tradeDetail;
+        }
       } else if (trade.status === TradeStatus.EXECUTING || trade.status === TradeStatus.PENDING) {
         openPositions++;
         const pair = `${trade.baseAsset}/${trade.counterAsset}`;
         const currentPrice = prices[pair] || Number(trade.entryPrice);
-        unrealizedPnL += this.calculateUnrealizedPnL(trade, currentPrice);
+        const positionPnL = this.pnlCalculator.calculateUnrealizedPnL(trade, currentPrice);
+        unrealizedPnL += positionPnL;
+        totalValue += Number(trade.amount) * currentPrice;
       }
     }
 
-    const winRate = closedTradesCount > 0 ? winningTrades / closedTradesCount : 0;
-    // Total value = (Initial Balance - not tracked here) + Realized + Unrealized? 
-    // Or just sum of current value of assets? 
-    // Usually Total Equity = Cash + Unrealized PnL. 
-    // Since we don't track Cash here, we can just return PnL stats.
-    // The requirement says "Portfolio Value". I'll approximate it as sum of (amount * currentPrice) for open positions.
-    
-    let totalValue = 0;
-     for (const trade of allTrades) {
-         if (trade.status === TradeStatus.EXECUTING || trade.status === TradeStatus.PENDING) {
-             const pair = `${trade.baseAsset}/${trade.counterAsset}`;
-             const price = prices[pair] || Number(trade.entryPrice);
-             totalValue += Number(trade.amount) * price;
-         }
-     }
+    const pnlBreakdown = this.pnlCalculator.calculatePortfolioPnl(allTrades, prices);
+    realizedPnL = pnlBreakdown.realizedPnL;
+    unrealizedPnL = pnlBreakdown.unrealizedPnL;
 
+    const winRate = closedTradesCount > 0 ? (winningTrades / closedTradesCount) * 100 : 0;
 
-    const result = {
+    const result: PortfolioSummaryDto = {
       totalValue,
       unrealizedPnL,
       realizedPnL,
@@ -141,17 +150,9 @@ export class PortfolioService {
       worstTrade,
     };
 
-    await this.cacheManager.set(cacheKey, result, 300000); // 5 minutes TTL (in milliseconds)
+    await this.cacheManager.set(cacheKey, result, 300000); // 5 minutes TTL
     return result;
   }
 
-  private calculateUnrealizedPnL(trade: Trade, currentPrice: number): number {
-    const amount = Number(trade.amount);
-    const entryPrice = Number(trade.entryPrice);
-    if (trade.side === TradeSide.BUY) {
-      return (currentPrice - entryPrice) * amount;
-    } else {
-      return (entryPrice - currentPrice) * amount;
-    }
-  }
+  // Unrealized PnL is delegated to PnlCalculatorService for fee inclusion.
 }

@@ -1,11 +1,20 @@
 import { SetMetadata } from '@nestjs/common';
 
-export const RATE_LIMIT = 'rateLimit';
+export const RATE_LIMIT_KEY = 'rate_limit';
 
-export interface RateLimitOptions {
-  windowMs: number; // time window in milliseconds
-  maxRequests: number; // max requests per window
+export enum RateLimitTier {
+  PUBLIC = 'public',
+  AUTHENTICATED = 'authenticated',
+  TRADE = 'trade',
+  SIGNAL = 'signal',
+  ADMIN = 'admin',
 }
 
-export const RateLimit = (options: RateLimitOptions) =>
-  SetMetadata(RATE_LIMIT, options);
+export interface RateLimitConfig {
+  tier: RateLimitTier;
+  limit?: number;
+  window?: number; // seconds
+}
+
+export const RateLimit = (config: RateLimitConfig) => 
+  SetMetadata(RATE_LIMIT_KEY, config);

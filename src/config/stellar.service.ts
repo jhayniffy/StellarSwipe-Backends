@@ -43,6 +43,6 @@ export class StellarConfigService {
   }
 
   isMainnet(): boolean {
-    return this.network === 'mainnet';
+    return this.network === 'public';
   }
 }

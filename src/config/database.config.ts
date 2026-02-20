@@ -9,7 +9,7 @@ export const databaseConfig = registerAs(
     username: process.env.DATABASE_USER || 'postgres',
     password: process.env.DATABASE_PASSWORD || 'password',
     database: process.env.DATABASE_NAME || 'stellarswipe',
-    synchronize: process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'mainnet',
+    synchronize: process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'mainnet' && process.env.NODE_ENV !== 'public',
     logging: process.env.DATABASE_LOGGING === 'true',
     // TypeORM specific properties
     type: 'postgres',
@@ -21,7 +21,7 @@ export const databaseConfig = registerAs(
       subscribersDir: 'src/subscribers',
     },
     ssl:
-      process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'mainnet'
+      process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'mainnet' || process.env.NODE_ENV === 'public'
         ? {
             rejectUnauthorized: false,
           }

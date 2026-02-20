@@ -12,8 +12,10 @@ import { User } from '../../users/entities/user.entity';
 
 export enum TradeStatus {
   PENDING = 'pending',
+  CONFIRMED = 'confirmed', // Included in ledger
+  SETTLED = 'settled',     // Trade completed on SDEX
   EXECUTING = 'executing',
-  COMPLETED = 'completed',
+  COMPLETED = 'completed', // Legacy, alias to SETTLED
   FAILED = 'failed',
   CANCELLED = 'cancelled',
 }
@@ -78,6 +80,9 @@ export class Trade {
 
   @Column({ name: 'soroban_contract_id', type: 'varchar', length: 128, nullable: true })
   sorobanContractId?: string;
+
+  @Column({ name: 'ledger', type: 'integer', nullable: true })
+  ledger?: number;
 
   @Column({ name: 'exit_price', type: 'decimal', precision: 18, scale: 8, nullable: true })
   exitPrice?: string;

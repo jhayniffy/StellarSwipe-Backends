@@ -39,7 +39,7 @@ export const configSchema = Joi.object({
 
   // Stellar Network Configuration
   STELLAR_NETWORK: Joi.string()
-    .valid('testnet', 'mainnet')
+    .valid('testnet', 'public')
     .default('testnet')
     .required(),
   STELLAR_HORIZON_URL: Joi.string().uri().required(),
@@ -51,6 +51,10 @@ export const configSchema = Joi.object({
   // JWT Configuration
   JWT_SECRET: Joi.string().min(32).required(),
   JWT_EXPIRES_IN: Joi.string().default('7d'),
+
+  // xAI Configuration
+  XAI_API_KEY: Joi.string().required(),
+  XAI_MODEL: Joi.string().default('grok-2-1212'),
 
   // Sentry Configuration (Optional)
   SENTRY_DSN: Joi.string().uri().optional().allow(''),

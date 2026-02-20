@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
+import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
 import { AppModule } from "./app.module";
 import { GlobalExceptionFilter } from "./common/filters";
 import {
@@ -33,18 +34,22 @@ async function bootstrap() {
   const host = configService.get("app.host");
   const apiPrefix = configService.get("app.apiPrefix");
   const apiVersion = configService.get("app.apiVersion");
-  const corsConfig = configService.get("app.cors");
+  const corsOrigin = configService.get("app.corsOrigin");
+  const corsCredentials = configService.get("app.corsCredentials");
   const globalPrefix = `${apiPrefix}/${apiVersion}`;
 
   // Set global prefix
   app.setGlobalPrefix(globalPrefix);
 
   // Enable CORS
-  app.enableCors(corsConfig);
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: corsCredentials,
+  });
 
   // Global pipes
   app.useGlobalPipes(
-    new ValidationPipe({
+    new I18nValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
@@ -55,7 +60,10 @@ async function bootstrap() {
   );
 
   // Global filters
-  app.useGlobalFilters(new GlobalExceptionFilter(logger, sentryService));
+  app.useGlobalFilters(
+    new GlobalExceptionFilter(logger, sentryService),
+    new I18nValidationExceptionFilter({ detailedErrors: false }),
+  );
 
   // Global interceptors
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
@@ -68,7 +76,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(`${globalPrefix}/docs`, app, document);
 

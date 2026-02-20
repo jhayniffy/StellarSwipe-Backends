@@ -26,7 +26,7 @@ export interface DatabaseConfig {
 }
 
 export interface StellarConfig {
-  network: 'testnet' | 'mainnet';
+  network: 'testnet' | 'public';
   horizonUrl: string;
   sorobanRpcUrl: string;
   networkPassphrase: string;
