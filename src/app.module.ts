@@ -28,6 +28,7 @@ import { SorobanModule } from './soroban/soroban.module';
 import { SdexModule } from './sdex/sdex.module';
 import { StellarModule } from './stellar/stellar.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { RatingsModule } from './ratings/ratings.module';
 import { AuthModule } from './auth/auth.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { WebsocketModule } from './websocket/websocket.module';
@@ -104,6 +105,7 @@ import { WebsocketModule } from './websocket/websocket.module';
     RiskManagerModule,
     PortfolioModule,
     DashboardModule,
+    RatingsModule,
     AnalyticsModule,
     AiValidationModule,
     HealthModule,
