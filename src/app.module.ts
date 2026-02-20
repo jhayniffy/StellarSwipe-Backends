@@ -26,6 +26,18 @@ import { CacheModule } from './cache/cache.module';
 import { redisCacheConfig } from './config/redis.config';
 import { SorobanModule } from './soroban/soroban.module';
 import { SdexModule } from './sdex/sdex.module';
+import { StellarModule } from './stellar/stellar.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { RatingsModule } from './ratings/ratings.module';
+import { ComplianceModule } from './compliance/compliance.module';
+import { RateLimitModule } from './common/rate-limit.module';
+import { AuthModule } from './auth/auth.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { I18nModule as LocalI18nModule } from './i18n/i18n.module';
+import { I18nMiddleware } from './i18n/i18n.middleware';
+import { MentorshipModule } from './mentorship/mentorship.module';
+
 
 @Module({
   imports: [
@@ -98,13 +110,27 @@ import { SdexModule } from './sdex/sdex.module';
     TradesModule,
     RiskManagerModule,
     PortfolioModule,
+    DashboardModule,
+    RatingsModule,
+    ComplianceModule,
+    RateLimitModule,
+    AnalyticsModule,
     AiValidationModule,
     HealthModule,
     SdexModule,
     SorobanModule,
+    StellarModule,
     CacheModule,
+    AuthModule,
+    WebsocketModule,
+    LocalI18nModule,
+    MentorshipModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: import('@nestjs/common').MiddlewareConsumer) {
+    consumer.apply(I18nMiddleware).forRoutes('*');
+  }
+}

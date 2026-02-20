@@ -6,23 +6,23 @@ export const stellarConfig = registerAs(
   (): StellarConfig => {
     const network = (process.env.STELLAR_NETWORK || 'testnet') as
       | 'testnet'
-      | 'mainnet';
+      | 'public';
 
     // Determine URLs based on network
-    const isMainnet = network === 'mainnet';
+    const isPublic = network === 'public';
     const horizonUrl =
       process.env.STELLAR_HORIZON_URL ||
-      (isMainnet
+      (isPublic
         ? 'https://horizon.stellar.org'
         : 'https://horizon-testnet.stellar.org');
     const sorobanRpcUrl =
       process.env.STELLAR_SOROBAN_RPC_URL ||
-      (isMainnet
+      (isPublic
         ? 'https://soroban-rpc.stellar.org'
         : 'https://soroban-testnet.stellar.org');
     const networkPassphrase =
       process.env.STELLAR_NETWORK_PASSPHRASE ||
-      (isMainnet
+      (isPublic
         ? 'Public Global Stellar Network ; September 2015'
         : 'Test SDF Network ; September 2015');
 

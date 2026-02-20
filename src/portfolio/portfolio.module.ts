@@ -10,28 +10,36 @@ import { RebalancingService } from './services/rebalancing.service';
 import { CheckRebalancingJob, REBALANCING_QUEUE } from './jobs/check-rebalancing.job';
 
 import { Trade } from '../trades/entities/trade.entity';
+import { Position } from './entities/position.entity';
+import { PnlHistory } from './entities/pnl-history.entity';
 import { User } from '../users/entities/user.entity';
 import { PriceService } from '../shared/price.service';
+import { CacheModule } from '@nestjs/cache-manager';
+import { PnlCalculatorService } from './services/pnl-calculator.service';
+import { PerformanceTrackerService } from './services/performance-tracker.service';
+import { ExportService } from './services/export.service';
+import { BullModule } from '@nestjs/bull';
+import { NotificationService } from '../common/services/notification.service';
+import { RateLimitService } from '../common/services/rate-limit.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Trade, User]),
+    TypeOrmModule.forFeature([Trade, Position, User, PnlHistory]),
     CacheModule.register(),
-    // Register the rebalancing queue so the job processor has access to it
     BullModule.registerQueue({
-      name: REBALANCING_QUEUE,
+      name: 'export-history',
     }),
   ],
   controllers: [PortfolioController],
   providers: [
-    // Existing
     PortfolioService,
     PriceService,
-    // New rebalancing providers
-    AllocationAnalyzerService,
-    RebalancingService,
-    CheckRebalancingJob,
+    PnlCalculatorService,
+    PerformanceTrackerService,
+    ExportService,
+    NotificationService,
+    RateLimitService,
   ],
-  exports: [RebalancingService, AllocationAnalyzerService],
+  exports: [PortfolioService, PnlCalculatorService, PerformanceTrackerService, ExportService],
 })
-export class PortfolioModule {}
+export class PortfolioModule { }

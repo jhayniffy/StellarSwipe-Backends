@@ -1,29 +1,40 @@
 import { Module, Global } from '@nestjs/common';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { redisStore } from 'cache-manager-redis-store';
-import { CacheService } from './cache.service';
+import { FeedCacheStrategy } from './strategies/feed-cache.strategy';
+import { ProviderCacheStrategy } from './strategies/provider-cache.strategy';
+import { PriceCacheStrategy } from './strategies/price-cache.strategy';
+import { CacheInvalidatorService } from './invalidation/cache-invalidator.service';
+import { CacheMetricsService } from './monitoring/cache-metrics.service';
+import { CacheController } from './cache.controller';
 
 @Global()
 @Module({
-    imports: [
-        NestCacheModule.registerAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: async (configService: ConfigService) => ({
-                store: redisStore as any,
-                host: configService.get<string>('redisCache.host') ?? 'localhost',
-                port: configService.get<number>('redisCache.port') ?? 6379,
-                password: configService.get<string>('redisCache.password'),
-                db: configService.get<number>('redisCache.db') ?? 0,
-                ttl: configService.get<number>('redisCache.ttl.default') ?? 60,
-                // Connection pooling
-                max: 100,
-                maxRetriesPerRequest: configService.get<number>('redisCache.maxRetriesPerRequest') ?? 3,
-            }),
-        }),
-    ],
-    providers: [CacheService],
-    exports: [NestCacheModule, CacheService],
+  imports: [
+    NestCacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: 'memory',
+        max: 1000, // Maximum number of items in cache
+        ttl: 300, // Default TTL in seconds
+      }),
+    }),
+  ],
+  providers: [
+    FeedCacheStrategy,
+    ProviderCacheStrategy,
+    PriceCacheStrategy,
+    CacheInvalidatorService,
+    CacheMetricsService,
+  ],
+  controllers: [CacheController],
+  exports: [
+    FeedCacheStrategy,
+    ProviderCacheStrategy,
+    PriceCacheStrategy,
+    CacheInvalidatorService,
+    CacheMetricsService,
+  ],
 })
-export class CacheModule { }
+export class CacheModule {}

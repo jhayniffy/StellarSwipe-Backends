@@ -15,7 +15,7 @@ export const mainnetConfig: Partial<Configuration> = {
     corsCredentials: true,
   },
   stellar: {
-    network: 'mainnet',
+    network: 'public',
     horizonUrl: 'https://horizon.stellar.org',
     sorobanRpcUrl: 'https://soroban-rpc.stellar.org',
     networkPassphrase: 'Public Global Stellar Network ; September 2015',
