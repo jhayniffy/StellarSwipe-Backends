@@ -41,6 +41,7 @@ import { AssetPair } from '../assets/entities/asset-pair.entity';
     RiskMetricsService,
     AttributionService,
     CorrelationService,
+    StatisticalAnalysisService
   ],
 })
 export class AnalyticsModule {}
