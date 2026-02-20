@@ -15,6 +15,8 @@ import { MetricPeriod } from './entities/metric-snapshot.entity';
 import { UserEventType } from './entities/user-event.entity';
 import { RiskMetricsService } from './services/risk-metrics.service';
 import { RiskMetricsQueryDto } from './dto/risk-metrics.dto';
+import { AttributionService } from './services/attribution.service';
+import { AttributionQueryDto } from './dto/attribution-query.dto';
 
 class TrackEventDto {
   @IsEnum(UserEventType)
@@ -45,6 +47,7 @@ export class AnalyticsController {
   constructor(
     private readonly analyticsService: AnalyticsService,
     private readonly riskMetricsService: RiskMetricsService,
+    private readonly attributionService: AttributionService,
   ) {}
 
   @Post('events')
@@ -122,5 +125,31 @@ export class AnalyticsController {
     }
 
     return this.riskMetricsService.calculateRiskMetrics(userId, query.days);
+  }
+
+  @Get('attribution')
+  async getAttribution(@Req() req: any, @Query() query: AttributionQueryDto) {
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new BadRequestException('User authentication required');
+    }
+
+    const startDate = new Date(query.startDate);
+    const endDate = new Date(query.endDate);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      throw new BadRequestException('startDate and endDate must be valid ISO dates');
+    }
+
+    if (startDate >= endDate) {
+      throw new BadRequestException('startDate must be before endDate');
+    }
+
+    return this.attributionService.calculateAttribution(
+      userId,
+      startDate,
+      endDate,
+      query.timeframe,
+    );
   }
 }
