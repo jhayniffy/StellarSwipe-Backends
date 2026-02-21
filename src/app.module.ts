@@ -21,6 +21,13 @@ import { UsersModule } from './users/users.module';
 import { SignalsModule } from './signals/signals.module';
 import { TradesModule } from './trades/trades.module';
 import { ProvidersModule } from './providers/providers.module';
+ feature/swipe-103-stellar
+import { MlModule } from './ml/ml.module';
+import { ValidationModule } from './common/validation/validation.module';
+import { ScalingModule } from './scaling/scaling.module';
+import { FeesModule } from './fee_management/fees.module';
+=======
+ main
 
 @Module({
   imports: [
@@ -83,6 +90,12 @@ import { ProvidersModule } from './providers/providers.module';
     CacheModule,
     AuthModule,
     ProvidersModule,
+ feature/swipe-103-stellar
+    MlModule,
+    ScalingModule,
+    FeesModule,
+=======
+ main
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
