@@ -8,8 +8,6 @@ import {
 } from 'typeorm';
 
 @Entity('provider_stats')
-@Index(['providerId'], { name: 'idx_provider_stats_provider' })
-@Index(['reputation_score'], { name: 'idx_provider_stats_reputation' })
 export class ProviderStats {
   @PrimaryColumn({ name: 'provider_id', type: 'uuid' })
   providerId!: string;

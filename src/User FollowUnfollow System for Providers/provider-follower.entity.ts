@@ -16,11 +16,9 @@ export class ProviderFollower {
   id: string;
 
   @Column({ name: 'user_id' })
-  @Index()
   userId: string;
 
   @Column({ name: 'provider_id' })
-  @Index()
   providerId: string;
 
   @CreateDateColumn({ name: 'followed_at' })

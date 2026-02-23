@@ -22,7 +22,6 @@ export class Referral {
   id!: string;
 
   @Column({ name: 'referrer_id', type: 'uuid' })
-  @Index()
   referrerId!: string;
 
   @ManyToOne(() => User)
@@ -30,7 +29,6 @@ export class Referral {
   referrer!: User;
 
   @Column({ name: 'referred_id', type: 'uuid' })
-  @Index()
   referredId!: string;
 
   @ManyToOne(() => User)
@@ -38,7 +36,6 @@ export class Referral {
   referred!: User;
 
   @Column({ name: 'referral_code', length: 8 })
-  @Index()
   referralCode!: string;
 
   @Column({

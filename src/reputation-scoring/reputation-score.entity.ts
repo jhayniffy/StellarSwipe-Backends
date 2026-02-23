@@ -9,13 +9,11 @@ import {
 } from 'typeorm';
 
 @Entity('reputation_scores')
-@Index(['providerId', 'recordedAt'])
 export class ReputationScore {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('uuid')
-  @Index()
   providerId: string;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })

@@ -19,8 +19,6 @@ export enum EngagementType {
 
 @Entity('content_engagement')
 @Unique(['contentId', 'userId', 'type'])
-@Index(['contentId', 'type'])
-@Index(['userId'])
 export class ContentEngagement {
   @PrimaryGeneratedColumn('uuid')
   id: string;

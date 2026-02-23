@@ -14,18 +14,14 @@ import {
  * Used for leaderboards and performance analytics.
  */
 @Entity('signal_performance')
-@Index(['providerId', 'date'], { name: 'idx_performance_provider_date' })
-@Index(['date'], { name: 'idx_performance_date' })
 export class SignalPerformance {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ name: 'provider_id', type: 'uuid' })
-  @Index()
   providerId!: string;
 
   @Column({ name: 'date', type: 'date' })
-  @Index()
   date!: Date;
 
   // Signal counts

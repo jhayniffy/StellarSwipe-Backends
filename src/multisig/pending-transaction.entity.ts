@@ -16,14 +16,11 @@ export enum PendingTransactionStatus {
 }
 
 @Entity('stellar_pending_transactions')
-@Index(['accountId', 'status'])
-@Index(['transactionHash'], { unique: true, where: "transaction_hash IS NOT NULL" })
 export class PendingTransaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'account_id' })
-  @Index()
   accountId: string;
 
   /** Base64-encoded XDR of the transaction envelope */

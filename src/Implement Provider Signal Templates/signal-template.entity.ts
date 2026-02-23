@@ -17,8 +17,6 @@ export interface TemplateStructure {
 }
 
 @Entity('signal_templates')
-@Index(['providerId'])
-@Index(['isPublic'])
 export class SignalTemplate {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -17,7 +17,6 @@ export enum PositionStatus {
 }
 
 @Entity('positions')
-@Index(['status', 'symbol']) // Speed up open-position queries
 export class Position {
   @PrimaryGeneratedColumn('uuid')
   id: string;

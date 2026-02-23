@@ -15,8 +15,6 @@ export enum FeeTierType {
 }
 
 @Entity('fee_tiers')
-@Index('idx_ft_tier_type', ['tierType'])
-@Index('idx_ft_is_active', ['isActive'])
 export class FeeTier {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

@@ -1,7 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Index } from 'typeorm';
 
 @Entity('sla_metrics')
-@Index(['service', 'timestamp'])
 export class SlaMetric {
   @PrimaryGeneratedColumn('uuid')
   id: string;

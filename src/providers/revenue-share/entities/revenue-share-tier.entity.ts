@@ -45,7 +45,6 @@ export class RevenueShareTier {
   id!: string;
 
   @Column({ type: 'enum', enum: ProviderTierLevel, unique: true })
-  @Index('idx_rst_tier_level')
   tierLevel!: ProviderTierLevel;
 
   /** Human-readable label, e.g. "Elite Provider" */
@@ -118,9 +117,6 @@ export class RevenueShareTier {
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Entity('provider_revenue_payouts')
-@Index('idx_prp_provider_id', ['providerId'])
-@Index('idx_prp_period', ['periodYear', 'periodMonth'])
-@Index('idx_prp_status', ['status'])
 export class ProviderRevenuePayout {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -194,7 +190,6 @@ export class ProviderRevenuePayout {
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Entity('provider_tier_assignments')
-@Index('idx_pta_provider_id', ['providerId'], { unique: true })
 export class ProviderTierAssignment {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

@@ -14,7 +14,6 @@ export class FeatureFlag {
   id!: string;
 
   @Column({ unique: true })
-  @Index('idx_feature_flag_name')
   name!: string;
 
   @Column({ nullable: true })

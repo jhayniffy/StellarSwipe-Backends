@@ -9,15 +9,11 @@ import {
 } from 'typeorm';
 
 @Entity('provider_earnings')
-@Index(['providerId', 'createdAt'])
-@Index(['signalId'])
-@Index(['tradeId'], { unique: true })
 export class ProviderEarning {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'uuid' })
-  @Index()
   providerId: string;
 
   @Column({ type: 'uuid' })

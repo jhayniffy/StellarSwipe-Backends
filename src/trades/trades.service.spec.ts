@@ -5,16 +5,15 @@ import { TradesService } from './trades.service';
 import { Trade, TradeStatus, TradeSide } from './entities/trade.entity';
 import { RiskManagerService } from './services/risk-manager.service';
 import { TradeExecutorService } from './services/trade-executor.service';
-import { VelocityRiskManager } from '../risk/velocity/velocity-risk-manager.service';
 import { createMockRepository } from '../../test/utils/test-helpers';
 import { tradeFactory } from '../../test/utils/mock-factories';
 
 describe('TradesService', () => {
   let service: TradesService;
-  let mockRepository: ReturnType<typeof createMockRepository>;
+  let mockRepository: any;
   let mockRiskManager: jest.Mocked<Partial<RiskManagerService>>;
   let mockTradeExecutor: jest.Mocked<Partial<TradeExecutorService>>;
-  let mockVelocityRiskManager: jest.Mocked<Partial<VelocityRiskManager>>;
+  let mockVelocityRiskManager: any;
 
   beforeEach(async () => {
     mockRepository = createMockRepository();
@@ -39,7 +38,7 @@ describe('TradesService', () => {
         { provide: getRepositoryToken(Trade), useValue: mockRepository },
         { provide: RiskManagerService, useValue: mockRiskManager },
         { provide: TradeExecutorService, useValue: mockTradeExecutor },
-        { provide: VelocityRiskManager, useValue: mockVelocityRiskManager },
+        { provide: 'VelocityRiskManager', useValue: mockVelocityRiskManager },
       ],
     }).compile();
 
@@ -61,7 +60,7 @@ describe('TradesService', () => {
 
     it('should execute trade successfully', async () => {
       mockRiskManager.checkDuplicateTrade.mockResolvedValue(false);
-      mockRiskManager.validateTrade.mockResolvedValue({ isValid: true, errors: [] });
+      mockRiskManager.validateTrade.mockResolvedValue({ isValid: true, errors: [], warnings: [] });
       mockVelocityRiskManager.validateTrade.mockResolvedValue(undefined);
       mockRepository.create.mockReturnValue(tradeFactory());
       mockRepository.save.mockResolvedValue(tradeFactory({ status: TradeStatus.COMPLETED }));
@@ -90,6 +89,7 @@ describe('TradesService', () => {
       mockRiskManager.validateTrade.mockResolvedValue({
         isValid: false,
         errors: ['Insufficient balance'],
+        warnings: [],
       });
 
       await expect(service.executeTrade(dto)).rejects.toThrow(BadRequestException);
@@ -97,7 +97,7 @@ describe('TradesService', () => {
 
     it('should handle execution failure', async () => {
       mockRiskManager.checkDuplicateTrade.mockResolvedValue(false);
-      mockRiskManager.validateTrade.mockResolvedValue({ isValid: true, errors: [] });
+      mockRiskManager.validateTrade.mockResolvedValue({ isValid: true, errors: [], warnings: [] });
       mockVelocityRiskManager.validateTrade.mockResolvedValue(undefined);
       mockRepository.create.mockReturnValue(tradeFactory());
       mockRepository.save.mockResolvedValue(tradeFactory());

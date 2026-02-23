@@ -16,14 +16,11 @@ export enum ActivityType {
 }
 
 @Entity('activities')
-@Index(['userId', 'createdAt'])
-@Index(['userId', 'type', 'createdAt'])
 export class Activity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'uuid' })
-  @Index()
   userId: string;
 
   @Column({ type: 'enum', enum: ActivityType })

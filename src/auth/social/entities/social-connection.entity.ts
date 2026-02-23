@@ -16,7 +16,6 @@ export enum SocialProvider {
 }
 
 @Entity('social_connections')
-@Index(['provider', 'providerId'], { unique: true })
 export class SocialConnection {
     @PrimaryGeneratedColumn('uuid')
     id!: string;

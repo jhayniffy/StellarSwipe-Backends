@@ -24,15 +24,11 @@ export enum ContentStatus {
 }
 
 @Entity('provider_content')
-@Index(['providerId', 'published'])
-@Index(['type', 'published'])
-@Index(['createdAt'])
 export class ProviderContent {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  @Index()
   providerId: string;
 
   @Column({

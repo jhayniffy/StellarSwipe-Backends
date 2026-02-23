@@ -79,7 +79,6 @@ export class AdvancedOrder {
   id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  @Index()
   userId!: string;
 
   @ManyToOne(() => User)
@@ -88,7 +87,6 @@ export class AdvancedOrder {
 
   /** Optional link back to a position / parent trade */
   @Column({ name: 'position_id', type: 'uuid', nullable: true })
-  @Index()
   positionId?: string;
 
   @Column({
@@ -96,7 +94,6 @@ export class AdvancedOrder {
     type: 'enum',
     enum: AdvancedOrderType,
   })
-  @Index()
   orderType!: AdvancedOrderType;
 
   @Column({
@@ -104,7 +101,6 @@ export class AdvancedOrder {
     enum: AdvancedOrderStatus,
     default: AdvancedOrderStatus.ACTIVE,
   })
-  @Index()
   status!: AdvancedOrderStatus;
 
   // ── Asset pair ────────────────────────────────────────────────────────────

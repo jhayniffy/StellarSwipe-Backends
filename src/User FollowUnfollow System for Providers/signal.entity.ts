@@ -12,7 +12,6 @@ export class Signal {
   id: string;
 
   @Column({ name: 'provider_id' })
-  @Index()
   providerId: string;
 
   @Column({ type: 'text', nullable: true })

@@ -20,11 +20,9 @@ export class SignalVersion {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Index()
   @Column({ name: 'signal_id' })
   signalId: string;
 
-  @Index()
   @Column({ name: 'provider_address' })
   providerAddress: string;
 
@@ -97,11 +95,9 @@ export class SignalVersionApproval {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Index()
   @Column({ name: 'signal_version_id' })
   signalVersionId: string;
 
-  @Index()
   @Column({ name: 'copier_id' })
   copierId: string;
 

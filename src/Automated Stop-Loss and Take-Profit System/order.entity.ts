@@ -12,7 +12,6 @@ export enum OrderSide {
 }
 
 @Entity('orders')
-@Index(['positionId', 'exitOrder'])
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;

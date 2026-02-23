@@ -10,7 +10,6 @@ import {
 import { User } from '../../users/entities/user.entity';
 
 @Entity('api_keys')
-@Index(['userId', 'createdAt'])
 export class ApiKey {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -22,7 +21,6 @@ export class ApiKey {
   name!: string;
 
   @Column({ length: 60 })
-  @Index('idx_api_key_hash', { unique: true })
   keyHash!: string;
 
   @Column('simple-array')

@@ -27,16 +27,12 @@ export enum PaymentStatus {
 }
 
 @Entity('user_subscriptions')
-@Index(['userId', 'status'])
-@Index(['tierId', 'status'])
-@Index(['renewsAt'])
 export class UserSubscription {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   /** The subscriber */
   @Column({ name: 'user_id', type: 'uuid' })
-  @Index()
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
@@ -45,7 +41,6 @@ export class UserSubscription {
 
   /** The tier being subscribed to */
   @Column({ name: 'tier_id', type: 'uuid' })
-  @Index()
   tierId!: string;
 
   @ManyToOne(() => SubscriptionTier, (tier) => tier.subscriptions, {
@@ -56,7 +51,6 @@ export class UserSubscription {
 
   /** Cached provider id for quick access-control checks */
   @Column({ name: 'provider_id', type: 'uuid' })
-  @Index()
   providerId!: string;
 
   @Column({
@@ -64,7 +58,6 @@ export class UserSubscription {
     enum: SubscriptionStatus,
     default: SubscriptionStatus.PENDING_PAYMENT,
   })
-  @Index()
   status!: SubscriptionStatus;
 
   /** The amount paid in USDC for this billing cycle */

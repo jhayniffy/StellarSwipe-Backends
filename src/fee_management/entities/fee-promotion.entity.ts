@@ -21,9 +21,6 @@ export enum PromotionType {
 }
 
 @Entity('fee_promotions')
-@Index('idx_fp_code', ['promoCode'], { unique: true })
-@Index('idx_fp_status', ['status'])
-@Index('idx_fp_dates', ['startDate', 'endDate'])
 export class FeePromotion {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -160,8 +157,6 @@ export class FeePromotion {
 
 // Table to track individual promotion redemptions
 @Entity('fee_promotion_redemptions')
-@Index('idx_fpr_promotion_id', ['promotionId'])
-@Index('idx_fpr_user_id', ['userId'])
 export class FeePromotionRedemption {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

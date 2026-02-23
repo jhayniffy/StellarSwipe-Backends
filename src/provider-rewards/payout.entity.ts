@@ -15,14 +15,11 @@ export enum PayoutStatus {
 }
 
 @Entity('payouts')
-@Index(['providerId', 'status'])
-@Index(['stellarTransactionId'])
 export class Payout {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'provider_id' })
-  @Index()
   providerId: string;
 
   @Column({ type: 'decimal', precision: 20, scale: 8 })

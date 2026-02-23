@@ -58,15 +58,11 @@ export enum AuditStatus {
 }
 
 @Entity('audit_logs')
-@Index(['userId', 'createdAt'])
-@Index(['action', 'createdAt'])
-@Index(['createdAt'])
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ name: 'user_id', nullable: true })
-  @Index()
   userId: string;
 
   @Column({

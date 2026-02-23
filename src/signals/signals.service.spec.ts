@@ -9,10 +9,10 @@ import { signalFactory, createSignalDtoFactory } from '../../test/utils/mock-fac
 
 describe('SignalsService', () => {
   let service: SignalsService;
-  let mockRepository: ReturnType<typeof createMockRepository>;
+  let mockRepository: any;
 
   beforeEach(async () => {
-    mockRepository = createMockRepository<Signal>();
+    mockRepository = createMockRepository();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

@@ -12,7 +12,6 @@ export class NotificationPreference {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Index({ unique: true })
   @Column({ name: 'user_id' })
   userId: string;
 

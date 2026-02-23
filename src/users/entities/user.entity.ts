@@ -26,7 +26,6 @@ export class User {
   email?: string;
 
   @Column({ unique: true, nullable: true, length: 56 })
-  @Index('idx_users_wallet_address')
   walletAddress?: string;
 
   @Column({ nullable: true, length: 100 })

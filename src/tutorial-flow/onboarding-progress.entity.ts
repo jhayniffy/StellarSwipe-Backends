@@ -23,7 +23,6 @@ export enum OnboardingStatus {
 }
 
 @Entity('onboarding_progress')
-@Index(['userId'], { unique: true })
 export class OnboardingProgress {
   @PrimaryGeneratedColumn('uuid')
   id: string;

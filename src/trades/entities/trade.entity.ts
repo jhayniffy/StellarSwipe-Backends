@@ -26,14 +26,11 @@ export enum TradeSide {
 }
 
 @Entity('trades')
-@Index(['user_id', 'status'], { name: 'idx_trades_user_status' })
-@Index(['user_id', 'created_at'], { name: 'idx_trades_user_created' })
 export class Trade {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  @Index()
   userId!: string;
 
   @ManyToOne(() => User, (user) => user.trades)
@@ -41,7 +38,6 @@ export class Trade {
   user!: User;
 
   @Column({ name: 'signal_id', type: 'uuid' })
-  @Index()
   signalId!: string;
 
   @Column({
@@ -49,7 +45,6 @@ export class Trade {
     enum: TradeStatus,
     default: TradeStatus.PENDING,
   })
-  @Index()
   status!: TradeStatus;
 
   @Column({
@@ -88,7 +83,6 @@ export class Trade {
     length: 128,
     nullable: true,
   })
-  @Index()
   transactionHash?: string;
 
   @Column({
@@ -157,7 +151,6 @@ export class Trade {
   closedAt?: Date;
 
   @Column({ name: 'parent_trade_id', type: 'uuid', nullable: true })
-  @Index()
   parentTradeId?: string;
 
   @Column({

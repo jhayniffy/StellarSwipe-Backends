@@ -16,7 +16,6 @@ export class UserAchievement {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Index()
   @Column('uuid')
   userId: string;
 

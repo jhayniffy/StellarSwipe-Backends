@@ -21,14 +21,11 @@ export enum TierLevel {
 }
 
 @Entity('subscription_tiers')
-@Index(['providerId', 'active'])
-@Index(['providerId', 'level'])
 export class SubscriptionTier {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ name: 'provider_id', type: 'uuid' })
-  @Index()
   providerId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })

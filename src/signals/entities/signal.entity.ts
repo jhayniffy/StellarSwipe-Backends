@@ -35,16 +35,11 @@ export enum SignalOutcome {
 }
 
 @Entity('signals')
-@Index(['status', 'created_at'], { name: 'idx_signals_feed' })
-@Index(['provider_id', 'created_at'], { name: 'idx_signals_provider' })
-@Index(['base_asset', 'counter_asset'])
-@Index(['status', 'type'], { name: 'idx_signals_status_type' })
 export class Signal {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ name: 'provider_id', type: 'uuid' })
-  @Index()
   providerId!: string;
 
   @ManyToOne(() => User, (user) => user.signals)
@@ -52,11 +47,9 @@ export class Signal {
   provider!: User;
 
   @Column({ name: 'base_asset', length: 100 })
-  @Index()
   baseAsset!: string;
 
   @Column({ name: 'counter_asset', length: 100 })
-  @Index()
   counterAsset!: string;
 
   @Column({
@@ -70,7 +63,6 @@ export class Signal {
     enum: SignalStatus,
     default: SignalStatus.ACTIVE,
   })
-  @Index()
   status!: SignalStatus;
 
   @Column({
@@ -126,7 +118,6 @@ export class Signal {
   totalCopiedVolume!: string;
 
   @Column({ name: 'expires_at', type: 'timestamp with time zone' })
-  @Index()
   expiresAt!: Date;
 
   @Column({
@@ -168,7 +159,6 @@ export class Signal {
   metadata!: Record<string, any> | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
-  @Index()
   createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
