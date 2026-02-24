@@ -24,7 +24,7 @@ import { SignalsModule } from './signals/signals.module';
 import { TradesModule } from './trades/trades.module';
 import { ProvidersModule } from './providers/providers.module';
 import { MlModule } from './ml/ml.module';
-import { ValidationModule } from './common/validation/validation.module';
+// import { ValidationModule } from './common/validation/validation.module';
 import { ScalingModule } from './scaling/scaling.module';
 import { VersioningModule } from './common/modules/versioning.module';
 import { ReferralsModule } from './referrals/referrals.module';
@@ -33,6 +33,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
 import { SecurityModule } from './security/security.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SecurityMonitoringModule } from './security/security-monitoring.module';
+import { AccessControlModule } from './security/access-control/access-control.module';
 
 @Module({
   imports: [
@@ -122,6 +123,7 @@ import { SecurityMonitoringModule } from './security/security-monitoring.module'
     ApiKeysModule,
     SecurityModule,
     SecurityMonitoringModule,
+    AccessControlModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
