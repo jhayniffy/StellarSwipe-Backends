@@ -4,8 +4,6 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   Index,
-  ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 
 export enum UpdateApprovalStatus {
@@ -16,67 +14,57 @@ export enum UpdateApprovalStatus {
 }
 
 @Entity('signal_versions')
+@Index(['signalId', 'versionNumber'])
 export class SignalVersion {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'signal_id' })
+  @Column({ name: 'signal_id', type: 'uuid' })
+  @Index()
   signalId: string;
 
-  @Column({ name: 'provider_address' })
-  providerAddress: string;
+  @Column({ name: 'provider_id', type: 'uuid' })
+  providerId: string;
 
-  @Column({ name: 'version_number' })
+  @Column({ name: 'version_number', type: 'int' })
   versionNumber: number;
 
-  // Snapshot of values at this version
   @Column({
     name: 'entry_price',
     type: 'decimal',
-    precision: 20,
+    precision: 18,
     scale: 8,
     nullable: true,
   })
-  entryPrice: number | null;
+  entryPrice: string | null;
 
   @Column({
     name: 'target_price',
     type: 'decimal',
-    precision: 20,
+    precision: 18,
     scale: 8,
     nullable: true,
   })
-  targetPrice: number | null;
+  targetPrice: string | null;
 
   @Column({
-    name: 'stop_loss',
+    name: 'stop_loss_price',
     type: 'decimal',
-    precision: 20,
+    precision: 18,
     scale: 8,
     nullable: true,
   })
-  stopLoss: number | null;
+  stopLossPrice: string | null;
 
-  @Column({
-    name: 'take_profit',
-    type: 'decimal',
-    precision: 20,
-    scale: 8,
-    nullable: true,
-  })
-  takeProfit: number | null;
+  @Column({ name: 'rationale', type: 'text', nullable: true })
+  rationale: string | null;
 
-  @Column({ name: 'notes', type: 'text', nullable: true })
-  notes: string | null;
-
-  // What changed from the previous version
   @Column({ name: 'change_summary', type: 'text', nullable: true })
   changeSummary: string | null;
 
   @Column({ name: 'requires_approval', default: false })
   requiresApproval: boolean;
 
-  // Tracks how many copiers approved/rejected/auto-applied this version
   @Column({ name: 'approved_count', default: 0 })
   approvedCount: number;
 
@@ -86,19 +74,22 @@ export class SignalVersion {
   @Column({ name: 'auto_applied_count', default: 0 })
   autoAppliedCount: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 }
 
 @Entity('signal_version_approvals')
+@Index(['signalVersionId', 'copierId'], { unique: true })
 export class SignalVersionApproval {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'signal_version_id' })
+  @Column({ name: 'signal_version_id', type: 'uuid' })
+  @Index()
   signalVersionId: string;
 
-  @Column({ name: 'copier_id' })
+  @Column({ name: 'copier_id', type: 'uuid' })
+  @Index()
   copierId: string;
 
   @Column({
@@ -112,6 +103,6 @@ export class SignalVersionApproval {
   @Column({ name: 'auto_adjust', default: false })
   autoAdjust: boolean;
 
-  @CreateDateColumn({ name: 'responded_at' })
+  @CreateDateColumn({ name: 'responded_at', type: 'timestamp with time zone' })
   respondedAt: Date;
 }

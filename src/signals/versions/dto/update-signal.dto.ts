@@ -1,39 +1,31 @@
 import {
   IsOptional,
-  IsNumber,
-  IsPositive,
-  IsBoolean,
   IsString,
+  IsBoolean,
   MaxLength,
-  Min,
-  ValidateIf,
+  Matches,
 } from 'class-validator';
 
 export class UpdateSignalDto {
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 8 })
-  @IsPositive()
-  targetPrice?: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 8 })
-  @IsPositive()
-  stopLoss?: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 8 })
-  @IsPositive()
-  takeProfit?: number;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 8 })
-  @IsPositive()
-  entryPrice?: number;
+  @IsString()
+  @Matches(/^\d+(\.\d{1,8})?$/, { message: 'targetPrice must be a valid decimal with up to 8 decimal places' })
+  targetPrice?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
-  notes?: string;
+  @Matches(/^\d+(\.\d{1,8})?$/, { message: 'stopLossPrice must be a valid decimal with up to 8 decimal places' })
+  stopLossPrice?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d+(\.\d{1,8})?$/, { message: 'entryPrice must be a valid decimal with up to 8 decimal places' })
+  entryPrice?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  rationale?: string;
 
   @IsOptional()
   @IsBoolean()
@@ -44,7 +36,6 @@ export class CopierApprovalDto {
   @IsBoolean()
   approved: boolean;
 
-  // If true, any future updates to this signal are applied automatically
   @IsOptional()
   @IsBoolean()
   autoAdjust?: boolean;
