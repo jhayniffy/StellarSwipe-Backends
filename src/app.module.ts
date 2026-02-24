@@ -2,21 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
- feature/swipe-124
 // import { CacheModule } from '@nestjs/cache-manager';
 import { stellarConfig } from './config/stellar.config';
 import { databaseConfig, redisConfig } from './config/database.config';
 import { connectionPoolConfig } from './database/config/connection-pool.config';
 import { xaiConfig } from './config/xai.config';
-=======
 
- main
 import { appConfig, sentryConfig } from './config/app.config';
-import { databaseConfig, redisConfig } from './config/database.config';
 import { jwtConfig } from './config/jwt.config';
 import { redisCacheConfig } from './config/redis.config';
-import { stellarConfig } from './config/stellar.config';
-import { xaiConfig } from './config/xai.config';
 import configuration from './config/configuration';
 import { configSchema } from './config/schemas/config.schema';
 import { StellarConfigService } from './config/stellar.service';
@@ -29,20 +23,17 @@ import { UsersModule } from './users/users.module';
 import { SignalsModule } from './signals/signals.module';
 import { TradesModule } from './trades/trades.module';
 import { ProvidersModule } from './providers/providers.module';
- feature/swipe-103-stellar
 import { MlModule } from './ml/ml.module';
-import { ValidationModule } from './common/validation/validation.module';
+// import { ValidationModule } from './common/validation/validation.module';
 import { ScalingModule } from './scaling/scaling.module';
- feature/api-versioning
 import { VersioningModule } from './common/modules/versioning.module';
-=======
 import { ReferralsModule } from './referrals/referrals.module';
 import { EventsModule } from './events/events.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { SecurityModule } from './security/security.module';
-import { ContestsModule } from './contests/contests.module';
- main
-
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { SecurityMonitoringModule } from './security/security-monitoring.module';
+import { AccessControlModule } from './security/access-control/access-control.module';
 
 @Module({
   imports: [
@@ -80,12 +71,7 @@ import { ContestsModule } from './contests/contests.module';
         },
       }),
     }),
-    LoggerModule,
-    SentryModule,
- feature/swipe-124
-    // Database Module with Connection Pool (min: 10, max: 30)
-=======
- main
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -117,30 +103,27 @@ import { ContestsModule } from './contests/contests.module';
         },
       }),
     }),
- feature/swipe-124
-    // Database Optimization Module
-    DatabaseOptimizationModule,
-    // Feature Modules
-=======
- main
+
+    EventEmitterModule.forRoot(),
+
+    // DatabaseOptimizationModule,
+    LoggerModule,
+    SentryModule,
     UsersModule,
     SignalsModule,
     TradesModule,
     CacheModule,
     AuthModule,
     ProvidersModule,
- feature/swipe-103-stellar
     MlModule,
     ScalingModule,
- feature/api-versioning
     VersioningModule,
-=======
     ReferralsModule,
     EventsModule,
     ApiKeysModule,
     SecurityModule,
-    ContestsModule,
- main
+    SecurityMonitoringModule,
+    AccessControlModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
