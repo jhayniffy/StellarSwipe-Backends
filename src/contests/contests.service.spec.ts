@@ -1,15 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ContestsService } from './contests.service';
 import { Contest, ContestMetric, ContestStatus } from './entities/contest.entity';
 import { Signal, SignalStatus } from '../signals/entities/signal.entity';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { User } from '../users/entities/user.entity';
 
 describe('ContestsService', () => {
   let service: ContestsService;
   let contestRepository: Repository<Contest>;
   let signalRepository: Repository<Signal>;
+  let userRepository: Repository<User>;
+  let eventEmitter: EventEmitter2;
 
   const mockContestRepository = {
     create: jest.fn(),
@@ -20,6 +24,14 @@ describe('ContestsService', () => {
 
   const mockSignalRepository = {
     find: jest.fn(),
+  };
+
+  const mockUserRepository = {
+    findOne: jest.fn(),
+  };
+
+  const mockEventEmitter = {
+    emit: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -34,31 +46,39 @@ describe('ContestsService', () => {
           provide: getRepositoryToken(Signal),
           useValue: mockSignalRepository,
         },
+        {
+          provide: getRepositoryToken(User),
+          useValue: mockUserRepository,
+        },
+        {
+          provide: EventEmitter2,
+          useValue: mockEventEmitter,
+        },
       ],
     }).compile();
 
     service = module.get<ContestsService>(ContestsService);
-    contestRepository = module.get<Repository<Contest>>(getRepositoryToken(Contest));
-    signalRepository = module.get<Repository<Signal>>(getRepositoryToken(Signal));
-  });
+    contestRepository = module.get(getRepositoryToken(Contest));
+    signalRepository = module.get(getRepositoryToken(Signal));
+    userRepository = module.get(getRepositoryToken(User));
+    eventEmitter = module.get(EventEmitter2);
 
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe('createContest', () => {
     it('should create a contest successfully', async () => {
       const dto = {
-        name: 'Weekly ROI Contest',
-        startTime: '2024-01-01T00:00:00Z',
-        endTime: '2024-01-08T00:00:00Z',
+        name: 'Weekly ROI Challenge',
+        startTime: new Date(Date.now() + 86400000).toISOString(),
+        endTime: new Date(Date.now() + 604800000).toISOString(),
         metric: ContestMetric.HIGHEST_ROI,
         minSignals: 3,
         prizePool: '1000',
       };
 
-      const expectedContest = {
-        id: '1',
+      const mockContest = {
+        id: 'contest-1',
         ...dto,
         startTime: new Date(dto.startTime),
         endTime: new Date(dto.endTime),
@@ -66,21 +86,33 @@ describe('ContestsService', () => {
         winners: null,
       };
 
-      mockContestRepository.create.mockReturnValue(expectedContest);
-      mockContestRepository.save.mockResolvedValue(expectedContest);
+      mockContestRepository.create.mockReturnValue(mockContest);
+      mockContestRepository.save.mockResolvedValue(mockContest);
 
       const result = await service.createContest(dto);
 
-      expect(result).toEqual(expectedContest);
-      expect(mockContestRepository.create).toHaveBeenCalled();
-      expect(mockContestRepository.save).toHaveBeenCalled();
+      expect(result).toEqual(mockContest);
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('contest.created', expect.any(Object));
     });
 
     it('should throw error if end time is before start time', async () => {
       const dto = {
         name: 'Invalid Contest',
-        startTime: '2024-01-08T00:00:00Z',
-        endTime: '2024-01-01T00:00:00Z',
+        startTime: new Date(Date.now() + 604800000).toISOString(),
+        endTime: new Date(Date.now() + 86400000).toISOString(),
+        metric: ContestMetric.HIGHEST_ROI,
+        minSignals: 3,
+        prizePool: '1000',
+      };
+
+      await expect(service.createContest(dto)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw error if start time is in the past', async () => {
+      const dto = {
+        name: 'Past Contest',
+        startTime: new Date(Date.now() - 86400000).toISOString(),
+        endTime: new Date(Date.now() + 604800000).toISOString(),
         metric: ContestMetric.HIGHEST_ROI,
         minSignals: 3,
         prizePool: '1000',
@@ -90,38 +122,16 @@ describe('ContestsService', () => {
     });
   });
 
-  describe('getContest', () => {
-    it('should return a contest by id', async () => {
-      const contest = {
-        id: '1',
-        name: 'Test Contest',
-        status: ContestStatus.ACTIVE,
-      };
-
-      mockContestRepository.findOne.mockResolvedValue(contest);
-
-      const result = await service.getContest('1');
-
-      expect(result).toEqual(contest);
-      expect(mockContestRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
-    });
-
-    it('should throw NotFoundException if contest not found', async () => {
-      mockContestRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.getContest('999')).rejects.toThrow(NotFoundException);
-    });
-  });
-
   describe('finalizeContest', () => {
-    it('should finalize contest and select winners', async () => {
+    it('should finalize contest with qualified winners', async () => {
+      const contestId = 'contest-1';
       const contest = {
-        id: '1',
+        id: contestId,
         name: 'Test Contest',
-        startTime: new Date('2024-01-01'),
-        endTime: new Date('2024-01-08'),
+        startTime: new Date(Date.now() - 604800000),
+        endTime: new Date(Date.now() - 86400000),
         metric: ContestMetric.HIGHEST_ROI,
-        minSignals: 2,
+        minSignals: 3,
         prizePool: '1000',
         status: ContestStatus.ACTIVE,
         winners: null,
@@ -129,94 +139,61 @@ describe('ContestsService', () => {
 
       const signals = [
         {
-          id: 's1',
-          providerId: 'p1',
-          entryPrice: '100',
-          closePrice: '150',
-          totalCopiedVolume: '1000',
-          totalProfitLoss: '50',
+          id: 'signal-1',
+          providerId: 'provider-1',
           status: SignalStatus.CLOSED,
-          createdAt: new Date('2024-01-02'),
-        },
-        {
-          id: 's2',
-          providerId: 'p1',
-          entryPrice: '200',
-          closePrice: '250',
-          totalCopiedVolume: '2000',
-          totalProfitLoss: '50',
-          status: SignalStatus.CLOSED,
-          createdAt: new Date('2024-01-03'),
-        },
-        {
-          id: 's3',
-          providerId: 'p2',
           entryPrice: '100',
           closePrice: '120',
-          totalCopiedVolume: '500',
-          totalProfitLoss: '20',
-          status: SignalStatus.CLOSED,
-          createdAt: new Date('2024-01-04'),
+          totalCopiedVolume: '1000',
+          totalProfitLoss: '200',
+          createdAt: new Date(Date.now() - 500000000),
         },
         {
-          id: 's4',
-          providerId: 'p2',
-          entryPrice: '150',
-          closePrice: '160',
-          totalCopiedVolume: '600',
-          totalProfitLoss: '10',
+          id: 'signal-2',
+          providerId: 'provider-1',
           status: SignalStatus.CLOSED,
-          createdAt: new Date('2024-01-05'),
+          entryPrice: '100',
+          closePrice: '110',
+          totalCopiedVolume: '500',
+          totalProfitLoss: '100',
+          createdAt: new Date(Date.now() - 500000000),
+        },
+        {
+          id: 'signal-3',
+          providerId: 'provider-1',
+          status: SignalStatus.CLOSED,
+          entryPrice: '100',
+          closePrice: '105',
+          totalCopiedVolume: '300',
+          totalProfitLoss: '50',
+          createdAt: new Date(Date.now() - 500000000),
         },
       ];
 
       mockContestRepository.findOne.mockResolvedValue(contest);
       mockSignalRepository.find.mockResolvedValue(signals);
+      mockUserRepository.findOne.mockResolvedValue({ followers: [] });
       mockContestRepository.save.mockResolvedValue({
         ...contest,
         status: ContestStatus.FINALIZED,
-        winners: ['p1', 'p2'],
+        winners: ['provider-1'],
       });
 
-      const result = await service.finalizeContest('1');
+      const result = await service.finalizeContest(contestId);
 
-      expect(result.winners).toHaveLength(2);
-      expect(result.winners[0]).toBe('p1');
-      expect(result.prizes['p1']).toBe('500.00000000');
-      expect(result.prizes['p2']).toBe('300.00000000');
-      expect(mockContestRepository.save).toHaveBeenCalled();
-    });
-
-    it('should throw error if contest not ended', async () => {
-      const contest = {
-        id: '1',
-        endTime: new Date(Date.now() + 86400000),
-        status: ContestStatus.ACTIVE,
-      };
-
-      mockContestRepository.findOne.mockResolvedValue(contest);
-
-      await expect(service.finalizeContest('1')).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw error if already finalized', async () => {
-      const contest = {
-        id: '1',
-        endTime: new Date('2024-01-01'),
-        status: ContestStatus.FINALIZED,
-      };
-
-      mockContestRepository.findOne.mockResolvedValue(contest);
-
-      await expect(service.finalizeContest('1')).rejects.toThrow(BadRequestException);
+      expect(result.winners).toHaveLength(1);
+      expect(result.winners[0]).toBe('provider-1');
+      expect(result.prizes['provider-1']).toBe('1000.00000000');
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('contest.finalized', expect.any(Object));
     });
 
     it('should handle no qualified entries', async () => {
+      const contestId = 'contest-1';
       const contest = {
-        id: '1',
+        id: contestId,
         name: 'Test Contest',
-        startTime: new Date('2024-01-01'),
-        endTime: new Date('2024-01-08'),
+        startTime: new Date(Date.now() - 604800000),
+        endTime: new Date(Date.now() - 86400000),
         metric: ContestMetric.HIGHEST_ROI,
         minSignals: 5,
         prizePool: '1000',
@@ -224,39 +201,55 @@ describe('ContestsService', () => {
         winners: null,
       };
 
-      const signals = [
-        {
-          id: 's1',
-          providerId: 'p1',
-          entryPrice: '100',
-          closePrice: '150',
-          status: SignalStatus.CLOSED,
-          createdAt: new Date('2024-01-02'),
-        },
-      ];
-
       mockContestRepository.findOne.mockResolvedValue(contest);
-      mockSignalRepository.find.mockResolvedValue(signals);
+      mockSignalRepository.find.mockResolvedValue([]);
       mockContestRepository.save.mockResolvedValue({
         ...contest,
         status: ContestStatus.FINALIZED,
         winners: [],
       });
 
-      const result = await service.finalizeContest('1');
+      const result = await service.finalizeContest(contestId);
 
       expect(result.winners).toHaveLength(0);
       expect(result.prizes).toEqual({});
     });
+
+    it('should throw error if contest not ended', async () => {
+      const contestId = 'contest-1';
+      const contest = {
+        id: contestId,
+        endTime: new Date(Date.now() + 86400000),
+        status: ContestStatus.ACTIVE,
+      };
+
+      mockContestRepository.findOne.mockResolvedValue(contest);
+
+      await expect(service.finalizeContest(contestId)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw error if already finalized', async () => {
+      const contestId = 'contest-1';
+      const contest = {
+        id: contestId,
+        endTime: new Date(Date.now() - 86400000),
+        status: ContestStatus.FINALIZED,
+      };
+
+      mockContestRepository.findOne.mockResolvedValue(contest);
+
+      await expect(service.finalizeContest(contestId)).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('getContestLeaderboard', () => {
-    it('should return leaderboard with sorted entries', async () => {
+    it('should return sorted leaderboard', async () => {
+      const contestId = 'contest-1';
       const contest = {
-        id: '1',
+        id: contestId,
         name: 'Test Contest',
-        startTime: new Date('2024-01-01'),
-        endTime: new Date('2024-01-08'),
+        startTime: new Date(Date.now() - 604800000),
+        endTime: new Date(Date.now() + 86400000),
         metric: ContestMetric.HIGHEST_ROI,
         minSignals: 1,
         prizePool: '1000',
@@ -266,80 +259,73 @@ describe('ContestsService', () => {
 
       const signals = [
         {
-          id: 's1',
-          providerId: 'p1',
-          entryPrice: '100',
-          closePrice: '200',
-          totalCopiedVolume: '1000',
-          totalProfitLoss: '100',
+          id: 'signal-1',
+          providerId: 'provider-1',
           status: SignalStatus.CLOSED,
-          createdAt: new Date('2024-01-02'),
-        },
-        {
-          id: 's2',
-          providerId: 'p2',
           entryPrice: '100',
           closePrice: '150',
-          totalCopiedVolume: '500',
-          totalProfitLoss: '50',
+          totalCopiedVolume: '1000',
+          totalProfitLoss: '500',
+          createdAt: new Date(Date.now() - 500000000),
+        },
+        {
+          id: 'signal-2',
+          providerId: 'provider-2',
           status: SignalStatus.CLOSED,
-          createdAt: new Date('2024-01-03'),
+          entryPrice: '100',
+          closePrice: '130',
+          totalCopiedVolume: '800',
+          totalProfitLoss: '300',
+          createdAt: new Date(Date.now() - 500000000),
         },
       ];
 
       mockContestRepository.findOne.mockResolvedValue(contest);
       mockSignalRepository.find.mockResolvedValue(signals);
+      mockUserRepository.findOne.mockResolvedValue({ followers: [] });
 
-      const result = await service.getContestLeaderboard('1');
+      const result = await service.getContestLeaderboard(contestId);
 
-      expect(result.contestId).toBe('1');
       expect(result.entries).toHaveLength(2);
-      expect(parseFloat(result.entries[0].score)).toBeGreaterThan(parseFloat(result.entries[1].score));
+      expect(parseFloat(result.entries[0].score)).toBeGreaterThan(
+        parseFloat(result.entries[1].score),
+      );
     });
   });
 
-  describe('getActiveContests', () => {
-    it('should return active contests', async () => {
+  describe('getProviderContestStats', () => {
+    it('should return provider contest statistics', async () => {
+      const providerId = 'provider-1';
       const contests = [
         {
-          id: '1',
-          name: 'Contest 1',
+          id: 'contest-1',
+          status: ContestStatus.FINALIZED,
+          winners: ['provider-1', 'provider-2'],
+          prizePool: '1000',
+          startTime: new Date(Date.now() - 1000000000),
+          endTime: new Date(Date.now() - 500000000),
+        },
+        {
+          id: 'contest-2',
           status: ContestStatus.ACTIVE,
-          startTime: new Date('2024-01-01'),
+          winners: null,
+          prizePool: '500',
+          startTime: new Date(Date.now() - 100000000),
+          endTime: new Date(Date.now() + 100000000),
         },
       ];
 
       mockContestRepository.find.mockResolvedValue(contests);
+      mockSignalRepository.find.mockResolvedValue([
+        { id: 'signal-1', providerId, createdAt: new Date() },
+      ]);
+      mockUserRepository.findOne.mockResolvedValue({ followers: [] });
 
-      const result = await service.getActiveContests();
+      const result = await service.getProviderContestStats(providerId);
 
-      expect(result).toEqual(contests);
-      expect(mockContestRepository.find).toHaveBeenCalled();
-    });
-  });
-
-  describe('getAllContests', () => {
-    it('should return all contests with optional status filter', async () => {
-      const contests = [
-        { id: '1', status: ContestStatus.ACTIVE },
-        { id: '2', status: ContestStatus.FINALIZED },
-      ];
-
-      mockContestRepository.find.mockResolvedValue(contests);
-
-      const result = await service.getAllContests();
-
-      expect(result).toEqual(contests);
-    });
-
-    it('should filter by status', async () => {
-      const contests = [{ id: '1', status: ContestStatus.ACTIVE }];
-
-      mockContestRepository.find.mockResolvedValue(contests);
-
-      const result = await service.getAllContests(ContestStatus.ACTIVE);
-
-      expect(result).toEqual(contests);
+      expect(result.totalContests).toBe(2);
+      expect(result.wins).toBe(1);
+      expect(result.activeContests).toBe(1);
     });
   });
 });

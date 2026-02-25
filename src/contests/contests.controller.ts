@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { ContestsService } from './contests.service';
 import { CreateContestDto, ContestQueryDto } from './dto/contest.dto';
 import { Contest, ContestStatus } from './entities/contest.entity';
@@ -23,6 +33,11 @@ export class ContestsController {
   @Get('active')
   async getActiveContests(): Promise<Contest[]> {
     return this.contestsService.getActiveContests();
+  }
+
+  @Get('provider/:providerId/stats')
+  async getProviderStats(@Param('providerId') providerId: string) {
+    return this.contestsService.getProviderContestStats(providerId);
   }
 
   @Get(':id')
