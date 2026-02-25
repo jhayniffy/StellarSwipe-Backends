@@ -37,6 +37,7 @@ import { AccessControlModule } from './security/access-control/access-control.mo
 import { KycModule } from './kyc/kyc.module';
 import { ProductAnalyticsModule } from './analytics/product-analytics.module';
 import { BackupModule } from './backup/backup.module';
+import { AdminAnalyticsModule } from './admin/analytics/admin-analytics.module';
 
 @Module({
   imports: [
@@ -130,8 +131,9 @@ import { BackupModule } from './backup/backup.module';
     KycModule,
     ProductAnalyticsModule,
     BackupModule,
+    AdminAnalyticsModule,
   ],
   providers: [StellarConfigService],
   exports: [StellarConfigService],
 })
-export class AppModule {}
+export class AppModule { }
